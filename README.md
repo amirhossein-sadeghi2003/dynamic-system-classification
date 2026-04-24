@@ -7,24 +7,24 @@ Description
 The project uses a simulated mass-spring-damper system to generate response data for three classes:
 
 underdamped
-critically damped
+critical
 overdamped
 
-From each simulated response, a set of simple features is extracted. These features are then used to train a machine learning classifier that predicts the damping category of the system.
+For each simulated response, a set of simple features is extracted. These features are then used to train a machine learning model that predicts the damping category of the system.
 
-The project also evaluates the effect of measurement noise by comparing classification performance on clean and noisy simulated data.
+The project also studies the effect of noise by comparing classification results on clean and noisy simulated data.
 
 Goals
 
 The goals of this project are:
 
 simulate dynamic system responses
-generate labeled datasets from simulation
-extract meaningful features from time-series signals
-train a classifier for system behavior classification
-compare performance on clean and noisy data
-connect physical system modeling with applied machine learning
-Dynamic System Model
+generate labeled datasets
+extract useful features from response signals
+train a classifier for damping type recognition
+compare model performance on clean and noisy data
+connect dynamic systems with basic machine learning
+System Model
 
 The system is based on the standard mass-spring-damper equation:
 
@@ -36,29 +36,16 @@ m is the mass
 c is the damping coefficient
 k is the spring constant
 x is the displacement
-
-The project uses:
-
-m = 1.0
-k = 10.0
-x0 = 1.0
-v0 = 0.0
-
-The critical damping value is computed from the system parameters and used to define the damping classes.
-
 Pipeline
-
-The project follows this pipeline.
-
 1. Data Generation
 
-The script simulates multiple system responses for:
+The project simulates multiple responses for:
 
-underdamped cases
-critical cases
-overdamped cases
+underdamped systems
+critically damped systems
+overdamped systems
 
-Two datasets are generated:
+Two datasets are created:
 
 clean simulated data
 noisy simulated data
@@ -85,7 +72,7 @@ data/features_noisy.csv
 
 A RandomForestClassifier is trained to classify the damping behavior of the system.
 
-The classifier is evaluated on:
+The model is tested on:
 
 clean feature data
 noisy feature data
@@ -101,26 +88,21 @@ The project produced the following baseline results:
 Clean data accuracy: 1.00
 Noisy data accuracy: 0.83
 
-These results show that the classifier performs perfectly on ideal simulated data and remains reasonably robust when noise is added to the signals.
+These results show that the classifier performs very well on ideal simulated data and remains reasonably robust when noise is added to the signals.
 
-This makes the project a simple example of machine learning applied to dynamic physical systems under both ideal and noisy conditions.
+This project is a simple example of machine learning applied to dynamic physical systems under both ideal and noisy conditions.
 
-Project Structure
-dynamic-system-classification/
-├── README.md
-├── .gitignore
-├── requirements.txt
-├── data/
-├── results/
-├── notebooks/
-└── src/
-    ├── generate_data.py
-    ├── extract_features.py
-    ├── train_model.py
-    └── main.py
-Run
+Main Files
 
-From the project root:
+Important files in this project:
+
+src/generate_data.py
+src/extract_features.py
+src/train_model.py
+src/main.py
+How to Run
+
+From the project root, run this command:
 
 python src/main.py
 
