@@ -25,18 +25,24 @@ def extract_features(row):
     return features
 
 
-def main():
-    df = pd.read_csv("data/simulation_data.csv")
+def process_file(input_path, output_path):
+    df = pd.read_csv(input_path)
 
     feature_rows = []
     for _, row in df.iterrows():
         feature_rows.append(extract_features(row))
 
     feature_df = pd.DataFrame(feature_rows)
-    feature_df.to_csv("data/features.csv", index=False)
+    feature_df.to_csv(output_path, index=False)
 
-    print("Features saved to data/features.csv")
+    print(f"Features saved to {output_path}")
     print(feature_df.head())
+
+
+def main():
+    process_file("data/simulation_data.csv", "data/features.csv")
+    print()
+    process_file("data/simulation_data_noisy.csv", "data/features_noisy.csv")
 
 
 if __name__ == "__main__":

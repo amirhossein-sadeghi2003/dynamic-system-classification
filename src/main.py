@@ -4,13 +4,13 @@ from train_model import main as train_model_main
 
 
 def main():
-    print("Step 1: Generating simulation data...")
+    print("Step 1: Generating clean and noisy simulation data...")
     generate_data_main()
 
     print("\nStep 2: Extracting features...")
     extract_features_main()
 
-    print("\nStep 3: Training classifier...")
+    print("\nStep 3: Training classifiers...")
     train_model_main()
 
     print("\nPipeline completed successfully.")
