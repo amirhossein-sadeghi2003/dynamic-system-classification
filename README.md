@@ -294,3 +294,13 @@ It shows that:
 - noise can significantly affect classification performance
 
 Overall, this project is a compact portfolio example of machine learning applied to dynamic physical systems.
+
+---
+
+## Dynamic Response Gallery
+
+The response gallery below shows representative clean and noisy mass-spring-damper signals for the three damping classes.
+
+![Dynamic Response Gallery](results/response_gallery.png)
+
+This makes the physical meaning of the classes easier to understand before looking at the classification results.
