@@ -8,7 +8,7 @@ This project connects:
 - signal feature extraction
 - supervised machine learning
 - clean-vs-noisy data evaluation
-- intelligent physical systems
+- signal-based system classification
 
 The goal is to show how simulated physical system responses can be converted into labeled datasets and used for classification.
 
@@ -34,7 +34,7 @@ The project also studies how added noise affects classification performance.
 
 ## Why This Project Matters
 
-Many intelligent physical systems rely on measured response signals to identify system behavior or detect operating conditions.
+Measured response signals can be used to identify system behavior or detect operating conditions.
 
 This project is a compact example of that idea:
 
@@ -249,7 +249,7 @@ It complements other projects such as:
 Together, these projects support a portfolio direction focused on:
 
 ```text
-AI / ML for intelligent physical systems
+Signal features and ML for simulated dynamic systems
 ```
 
 ---
@@ -272,7 +272,7 @@ These limitations are acceptable for a compact educational project, but they lea
 
 Possible next steps:
 
-- add more advanced time-domain features
+- add richer time-domain features
 - compare multiple classifiers
 - test stronger and more realistic noise models
 - use cross-validation
@@ -284,7 +284,7 @@ Possible next steps:
 
 ## Summary
 
-This project demonstrates how dynamic system responses can be transformed into a supervised learning problem.
+This repository shows how simulated dynamic system responses can be turned into a supervised learning problem.
 
 It shows that:
 
