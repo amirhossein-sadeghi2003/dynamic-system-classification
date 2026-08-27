@@ -1,11 +1,11 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 .vscode/
 .idea/
 .DS_Store
 *.swp
 *.swo
 *.swn
-data/*.csv
-results/*.png

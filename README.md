@@ -1,306 +1,134 @@
 # Dynamic System Classification
 
-Machine learning project for classifying the damping behavior of a simulated mass-spring-damper system using extracted response features.
+This repository classifies three damping-coefficient bands from synthetic
+mass-spring-damper displacement responses. It uses five hand-designed signal
+features and a Random Forest classifier.
 
-This project connects:
+The clean and noisy datasets are paired: every noisy response uses the same
+damping coefficient and sample ID as its clean counterpart. This makes the
+clean-to-noisy evaluation a direct test of distribution shift rather than a
+comparison between independently sampled datasets.
 
-- dynamic system simulation
-- signal feature extraction
-- supervised machine learning
-- clean-vs-noisy data evaluation
-- signal-based system classification
+## Results
 
-The goal is to show how simulated physical system responses can be converted into labeled datasets and used for classification.
+The committed results come from 300 simulated parameter samples, each represented
+by a clean and a paired noisy response. Evaluation uses a seeded 80/20 split and
+additive Gaussian noise with a standard deviation of `0.03 m`.
 
----
+| Scenario | Training data | Test data | Accuracy | Macro F1 |
+|---|---|---|---:|---:|
+| Clean holdout | Clean | Clean | 1.000 | 1.000 |
+| Clean-to-noisy transfer | Clean | Paired noisy | 0.333 | 0.167 |
+| Noisy holdout | Noisy | Noisy | 0.900 | 0.899 |
 
-## Project Overview
+The perfect clean score should be interpreted narrowly. The classes are
+well-separated synthetic parameter bands generated from one fixed system. More
+importantly, the clean-trained model falls to chance-level accuracy on the paired
+noisy holdout. Training on noisy samples recovers much of the performance, but
+that is an in-distribution result and not evidence of hardware robustness.
 
-This project simulates a mass-spring-damper system under different damping conditions and trains a machine learning model to classify the system behavior.
+The exact values are stored in
+[`results/evaluation_metrics.csv`](results/evaluation_metrics.csv).
 
-The three target classes are:
+## Model and labels
 
-- `underdamped`
-- `critical`
-- `overdamped`
-
-The workflow is:
-
-`dynamic system simulation → response signal generation → feature extraction → Random Forest classification → clean/noisy evaluation`
-
-The project also studies how added noise affects classification performance.
-
----
-
-## Why This Project Matters
-
-Measured response signals can be used to identify system behavior or detect operating conditions.
-
-This project is a compact example of that idea:
-
-- simulate a physical dynamic system
-- generate labeled response data
-- extract meaningful features from signals
-- train a classifier
-- evaluate robustness under noisy conditions
-
-It is relevant to:
-
-- machine learning for physical systems
-- dynamic system analysis
-- condition classification
-- signal processing
-- control-inspired monitoring
-- intelligent sensing systems
-
----
-
-## System Model
-
-The simulated system is a standard mass-spring-damper model:
+The simulated free response follows
 
 ```text
 m x'' + c x' + k x = 0
 ```
 
-where:
+with:
 
-- `m` is the mass
-- `c` is the damping coefficient
-- `k` is the spring constant
-- `x` is the displacement
+- mass `m = 1 kg`
+- spring constant `k = 10 N/m`
+- initial displacement `x(0) = 1 m`
+- initial velocity `x'(0) = 0 m/s`
+- duration `10 s` with 100 samples
 
-Different damping values are used to generate three behavior classes:
+The critical damping coefficient is
 
-| Class | Description |
+```text
+c_critical = 2 sqrt(m k) = 6.3246 N s/m
+```
+
+Samples are drawn from these deliberately separated bands:
+
+| Label | Damping coefficient range |
 |---|---|
-| `underdamped` | Oscillatory response with decaying amplitude |
-| `critical` | Fast return to equilibrium without oscillation |
-| `overdamped` | Slow non-oscillatory return to equilibrium |
+| `underdamped` | `0.5` to `c_critical - 0.5 N s/m` |
+| `near_critical` | `c_critical ± 0.1 N s/m` |
+| `overdamped` | `c_critical + 0.5` to `c_critical + 4.0 N s/m` |
 
----
+`near_critical` is a tolerance band around the boundary, not a claim that every
+sample has exactly critical damping.
 
-## Project Pipeline
+## Features
 
-### 1. Response Simulation
+The damping coefficient and damping ratio are retained as simulation metadata but
+are not given to the classifier. The model uses only:
 
-The project simulates multiple mass-spring-damper responses for the three damping classes.
+- maximum absolute displacement
+- final absolute displacement
+- mean absolute displacement
+- response standard deviation
+- zero-crossing count
 
-Generated datasets:
+![Paired clean and noisy responses](results/response_gallery.png)
 
-```text
-data/simulation_data.csv
-data/simulation_data_noisy.csv
+## Evaluation design
+
+The random seed is `42`. Stratified splitting selects the same 60 held-out sample
+IDs for the clean and noisy datasets.
+
+Three evaluations are produced:
+
+1. a model trained on clean training samples and tested on clean held-out samples;
+2. the same clean-trained model tested on the paired noisy versions of those
+   held-out samples;
+3. a separate model trained on noisy training samples and tested on noisy held-out
+   samples.
+
+No held-out sample, clean or noisy, is used to fit its corresponding model.
+
+| Clean holdout | Clean-to-noisy transfer | Noisy holdout |
+|---|---|---|
+| ![Clean confusion matrix](results/confusion_matrix.png) | ![Transfer confusion matrix](results/confusion_matrix_transfer.png) | ![Noisy confusion matrix](results/confusion_matrix_noisy.png) |
+
+## Reproduce
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+python src/main.py
+python -m unittest discover -s tests -v
 ```
 
-The noisy dataset is created by adding noise to the simulated response signals.
+The pipeline regenerates the four CSV datasets, three confusion matrices,
+response gallery, and evaluation metrics.
 
----
-
-### 2. Feature Extraction
-
-For each response signal, a compact set of features is extracted.
-
-Extracted features:
-
-- `max_abs`
-- `final_abs`
-- `mean_abs`
-- `std_response`
-- `zero_crossings`
-
-Generated feature files:
+## Repository layout
 
 ```text
-data/features.csv
-data/features_noisy.csv
+data/       simulated responses and extracted features
+results/    metrics and generated figures
+src/        simulation, feature extraction, evaluation, and plotting
+tests/      reproducibility and evaluation checks
 ```
-
-These features are simple but interpretable. For example, `zero_crossings` helps distinguish oscillatory underdamped responses from non-oscillatory critical or overdamped responses.
-
----
-
-### 3. Classification
-
-A `RandomForestClassifier` is trained to classify the damping behavior.
-
-The model is evaluated on:
-
-- clean simulated feature data
-- noisy simulated feature data
-
-Generated result files:
-
-```text
-results/confusion_matrix.png
-results/confusion_matrix_noisy.png
-```
-
----
-
-## Results
-
-Baseline classification results:
-
-| Dataset | Accuracy |
-|---|---:|
-| Clean data | 1.00 |
-| Noisy data | 0.83 |
-
-The results show that:
-
-- the classifier separates ideal simulated damping classes very well
-- noisy response signals make classification more difficult
-- simple extracted features still provide useful information under noise
-- dynamic system behavior can be represented in a machine-learning-friendly format
-
----
-
-## Output Figures
-
-### Clean Data Confusion Matrix
-
-The classifier achieves perfect classification on the clean simulated feature dataset.
-
-![Clean Data Confusion Matrix](results/confusion_matrix.png)
-
-### Noisy Data Confusion Matrix
-
-The noisy dataset creates a more difficult classification problem and reduces accuracy.
-
-![Noisy Data Confusion Matrix](results/confusion_matrix_noisy.png)
-
----
-
-## Repository Structure
-
-```text
-dynamic-system-classification/
-├── data/
-│   ├── features.csv
-│   ├── features_noisy.csv
-│   ├── simulation_data.csv
-│   └── simulation_data_noisy.csv
-├── results/
-│   ├── confusion_matrix.png
-│   └── confusion_matrix_noisy.png
-├── src/
-│   ├── extract_features.py
-│   ├── generate_data.py
-│   ├── main.py
-│   └── train_model.py
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Main Files
-
-Important files in this project:
-
-- `src/generate_data.py` — simulates mass-spring-damper response data
-- `src/extract_features.py` — extracts features from response signals
-- `src/train_model.py` — trains and evaluates the classifier
-- `src/main.py` — runs the full pipeline
-
----
-
-## How to Run
-
-Create and activate a virtual environment:
-
-`python3 -m venv venv`
-
-`source venv/bin/activate`
-
-Install dependencies:
-
-`pip install -r requirements.txt`
-
-Run the full pipeline:
-
-`python src/main.py`
-
-This regenerates the simulated datasets, extracted feature files, and confusion matrix results.
-
----
-
-## Main Libraries
-
-- `numpy`
-- `scipy`
-- `matplotlib`
-- `pandas`
-- `scikit-learn`
-
----
-
-## Project Role in Portfolio
-
-This project is designed as a bridge between machine learning and dynamic physical systems.
-
-It complements other projects such as:
-
-- DC motor simulation
-- Kalman filtering for motor state estimation
-- embedded TinyML condition monitoring
-
-Together, these projects support a portfolio direction focused on:
-
-```text
-Signal features and ML for simulated dynamic systems
-```
-
----
 
 ## Limitations
 
-This project has several limitations:
+- All responses are simulated; no sensor or hardware data is included.
+- Mass, spring constant, initial state, duration, and noise level are fixed.
+- The parameter bands contain gaps and are easier than a boundary-classification
+  problem.
+- Results use one seeded split and one classifier, not repeated cross-validation.
+- The noise is independent additive Gaussian noise and does not represent sensor
+  bias, drift, timing error, or correlated disturbances.
+- The clean-to-noisy result shows that these simple features are not invariant to
+  the chosen noise model.
 
-- the data is fully simulated
-- the feature set is simple and hand-designed
-- the model is evaluated on generated data rather than real sensor data
-- the noise model is simplified
-- only one classifier is used in the current version
+## License
 
-These limitations are acceptable for a compact educational project, but they leave room for future extensions.
-
----
-
-## Future Work
-
-Possible next steps:
-
-- add richer time-domain features
-- compare multiple classifiers
-- test stronger and more realistic noise models
-- use cross-validation
-- apply the same idea to DC motor or pendulum systems
-- use real sensor data instead of fully simulated responses
-- explore time-series models that operate directly on response signals
-
----
-
-## Summary
-
-This repository shows how simulated dynamic system responses can be turned into a supervised learning problem.
-
-It shows that:
-
-- simulated physical systems can generate useful labeled datasets
-- simple signal features can capture important behavior patterns
-- machine learning can classify dynamic regimes
-- noise can significantly affect classification performance
-
-Overall, this project is a compact portfolio example of machine learning applied to dynamic physical systems.
-
----
-
-## Dynamic Response Gallery
-
-The response gallery below shows representative clean and noisy mass-spring-damper signals for the three damping classes.
-
-![Dynamic Response Gallery](results/response_gallery.png)
-
-This makes the physical meaning of the classes easier to understand before looking at the classification results.
+MIT License. See [`LICENSE`](LICENSE).

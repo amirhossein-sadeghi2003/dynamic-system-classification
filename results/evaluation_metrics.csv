@@ -1,0 +1,4 @@
+scenario,train_dataset,test_dataset,accuracy,macro_f1,test_samples,split_seed
+clean_holdout,clean,clean,1.0,1.0,60,42
+clean_to_noisy,clean,noisy,0.3333333333333333,0.16666666666666666,60,42
+noisy_holdout,noisy,noisy,0.9,0.8986568986568987,60,42
